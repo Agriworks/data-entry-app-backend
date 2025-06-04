@@ -27,21 +27,39 @@ const Login: React.FC<Props> = ({ navigation }) => {
     try {
       await GoogleSignin.hasPlayServices();
       const { idToken } = await GoogleSignin.signIn();
-
+  
+      // Firebase login (optional if you're just using Google sign-in)
       const googleCredential = auth.GoogleAuthProvider.credential(idToken);
       const userCredential = await auth().signInWithCredential(googleCredential);
-
-      Alert.alert('Signed in', `Welcome ${userCredential.user.displayName}`);
-      navigation.navigate('ERP'); // or save user data in storage/context if needed
+  
+      // ✅ Send ID token to your FastAPI backend
+      const response = await fetch('http://192.168.29.202:8000/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id_token: idToken }),
+      });
+  
+      if (!response.ok) {
+        throw new Error('Backend token verification failed');
+      }
+  
+      const data = await response.json();
+      console.log('JWT:', data.access_token);
+      Alert.alert('Success', `Welcome ${data.user.name}`);
+  
+      // You can now save data.access_token to secure storage if needed
+      navigation.navigate('ERP');
+  
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
         Alert.alert('Cancelled', 'User cancelled sign-in');
       } else {
         console.error('Google Sign-In Error:', error);
-        Alert.alert('Error', 'Google sign-in failed');
+        Alert.alert('Error', error.message || 'Google sign-in failed');
       }
     }
   };
+  
 
   return (
     <View style={styles.container}>
