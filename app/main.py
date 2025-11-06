@@ -8,6 +8,7 @@ from services.fetchDoctype import fetch_doctype
 from services.fetch_all_doctype_names import fetch_all_doctype_names
 from services.send_submission_to_server import send_submission_to_server
 from services.create_schema_hash import create_schema_hash
+from services.fetch_link_options import fetch_link_options
 from middleware.auth_middleware import AuthMiddleware
 from utils.auth_utils import get_current_token, require_auth, get_current_user_info, get_current_user_email
 
@@ -70,6 +71,11 @@ def get_doctype(form_name: str):
 @app.get("/doctype", operation_id="get_all_doctypes")
 def get_all_doctypes():
     data = fetch_all_doctype_names()
+    return {"data": data}
+
+@app.get("/link-options/{linked_doctype}", operation_id="get_link_options")
+def get_link_options(linked_doctype: str):
+    data = fetch_link_options(linked_doctype)
     return {"data": data}
 
 #for postman testing
